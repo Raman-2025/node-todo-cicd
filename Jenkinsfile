@@ -1,35 +1,37 @@
 pipeline{
-    agent { label 'dev-server' }
-    
+    agent{label 'vinod'}
     stages{
-        stage("Code Clone"){
+        stage('code'){
             steps{
-                echo "Code Clone Stage"
-                git url: "https://github.com/LondheShubham153/node-todo-cicd.git", branch: "master"
+              git url: "https://github.com/Raman-2025/node-todo-cicd.git", branch: "master"
+              echo "successful"
             }
         }
-        stage("Code Build & Test"){
+        stage('build'){
             steps{
-                echo "Code Build Stage"
-                sh "docker build -t node-app ."
+                sh "docker build -t node-app:latest ."
+                echo "successful"
             }
         }
-        stage("Push To DockerHub"){
+        stage('push to dockerhub'){
             steps{
-                withCredentials([usernamePassword(
-                    credentialsId:"dockerHubCreds",
-                    usernameVariable:"dockerHubUser", 
-                    passwordVariable:"dockerHubPass")]){
-                sh 'echo $dockerHubPass | docker login -u $dockerHubUser --password-stdin'
-                sh "docker image tag node-app:latest ${env.dockerHubUser}/node-app:latest"
-                sh "docker push ${env.dockerHubUser}/node-app:latest"
+                withCredentials([usernamePassword 
+                (credentialsId: "dockerHubCred",
+                passwordVariable: "dockerHubPass",
+                usernameVariable: "dockerHubUser") ]) {
+                sh '''
+                echo $dockerHubPass | docker login -u $dockerHubUser --password-stdin
+                docker image tag node-app:latest $dockerHubUser/node-app:latest
+                docker push $dockerHubUser/node-app:latest 
+                '''
                 }
             }
         }
-        stage("Deploy"){
+        stage('deploy'){
             steps{
                 sh "docker compose down && docker compose up -d --build"
+                echo "successful"
             }
-        }
+        }        
     }
 }
